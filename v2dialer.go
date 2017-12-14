@@ -2,9 +2,11 @@ package wavingocean
 
 import (
 	"context"
-	"io"
+	"log"
 	"net"
+	"strconv"
 
+	"v2ray.com/core/app/dispatcher"
 	"v2ray.com/core/common/buf"
 	v2net "v2ray.com/core/common/net"
 )
@@ -15,37 +17,57 @@ type V2Dialer struct {
 
 func (vd *V2Dialer) Dial(network, address string, port uint16, ctx context.Context) (net.Conn, error) {
 	var dest net.Addr
+	var err error
 	switch network {
 	case "tcp4":
-		dest, _ = net.ResolveTCPAddr(network, address)
+		dest, err = net.ResolveTCPAddr(network, address+":"+strconv.Itoa(int(port)))
+		log.Println(err)
 	case "udp4":
-		dest, _ = net.ResolveUDPAddr(network, address)
+		dest, err = net.ResolveUDPAddr(network, address+":"+strconv.Itoa(int(port)))
+		log.Println(err)
 	}
 	v2dest := v2net.DestinationFromAddr(dest)
-	ray, err := vd.ser.disp.Dispatch(ctx, v2dest)
+	disp := dispatcher.FromSpace(vd.ser.space)
+	ray, err := disp.Dispatch(ctx, v2dest)
 	if err != nil {
 		panic(err)
 	}
 	//Copy data
 	conn1, conn2 := net.Pipe()
 	go func() {
-		buf, _ := ray.InboundOutput().ReadMultiBuffer()
-		io.Copy(conn1, &buf)
+		for {
+			var buffer [1500]byte
+			buf, err := ray.InboundOutput().ReadMultiBuffer()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			n, err := buf.Read(buffer[:])
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			conn1.Write(buffer[:n])
+		}
 	}()
 	go func() {
-		buf, _ := ray.InboundOutput().ReadMultiBuffer()
-		io.Copy(&V2WriteAdapter{inter: buf}, conn1)
+		for {
+			mb := buf.NewMultiBufferCap(65536)
+			var buffer [1500]byte
+			n, err := conn1.Read(buffer[:])
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			mb.Write(buffer[:n])
+			err = ray.InboundInput().WriteMultiBuffer(mb)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
 	}()
 	return conn2, nil
-}
-
-type V2WriteAdapter struct {
-	inter buf.MultiBuffer
-}
-
-func (V *V2WriteAdapter) Write(b []byte) (int, error) {
-	V.inter.Write(b)
-	return len(b), nil
 }
 
 func (vd *V2Dialer) NotifyMeltdown(reason error) {}

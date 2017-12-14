@@ -243,6 +243,34 @@ func (ut *udpConnTrack) run() {
 
 	quitUDP := make(chan bool)
 	start := time.Now()
+	go func() {
+		var buffer [1500]byte
+		for {
+			if childctx.Err() != nil {
+				return
+			}
+			n, err := ut.socksConn.Read(buffer[:])
+			if err != nil {
+				cancel()
+				return
+			}
+			ut.send(buffer[:n])
+			if ut.t2s.isDNS(ut.remoteIP.String(), ut.remotePort) {
+				// DNS-without-fragment only has one request-response
+				end := time.Now()
+				ms := end.Sub(start).Nanoseconds() / 1000000
+				log.Printf("DNS session response received: %d ms", ms)
+				if ut.t2s.cache != nil {
+					ut.t2s.cache.store(buffer[:n])
+				}
+				ut.socksConn.Close()
+				//close(ut.quitBySelf)
+				ut.t2s.clearUDPConnTrack(ut.id)
+				//close(quitUDP)
+				return
+			}
+		}
+	}()
 	for {
 		var t *time.Timer
 		if ut.t2s.isDNS(ut.remoteIP.String(), ut.remotePort) {
@@ -250,33 +278,6 @@ func (ut *udpConnTrack) run() {
 		} else {
 			t = time.NewTimer(2 * time.Minute)
 		}
-		go func() {
-			var buffer [1500]byte
-			for {
-				if childctx.Err() != nil {
-					return
-				}
-				n, err := ut.socksConn.Read(buffer[:])
-				if err != nil {
-					cancel()
-				}
-				ut.send(buffer[:n])
-				if ut.t2s.isDNS(ut.remoteIP.String(), ut.remotePort) {
-					// DNS-without-fragment only has one request-response
-					end := time.Now()
-					ms := end.Sub(start).Nanoseconds() / 1000000
-					log.Printf("DNS session response received: %d ms", ms)
-					if ut.t2s.cache != nil {
-						ut.t2s.cache.store(buffer[:n])
-					}
-					ut.socksConn.Close()
-					close(ut.quitBySelf)
-					ut.t2s.clearUDPConnTrack(ut.id)
-					close(quitUDP)
-					return
-				}
-			}
-		}()
 		select {
 		// pkt from tun
 		case pkt := <-ut.fromTunCh:
@@ -317,8 +318,8 @@ func (ut *udpConnTrack) run() {
 			return
 
 		case <-childctx.Done():
-			ut.socksConn.Close()
-			close(quitUDP)
+			//ut.socksConn.Close()
+			//close(quitUDP)
 		}
 		t.Stop()
 	}

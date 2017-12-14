@@ -8,6 +8,9 @@ import (
 	"github.com/yinghuocho/gotun2socks"
 	"github.com/yinghuocho/gotun2socks/tun"
 	"v2ray.com/core"
+
+	//load v2ray init codes
+	_ "v2ray.com/core/main/distro/all"
 )
 
 /*Ignite Start Tap server from configure
