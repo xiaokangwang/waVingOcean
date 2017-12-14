@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "configure";
+
+message waVingOceanConfigureTunCfg {
+  string Name = 1;
+  string Address = 2;
+  string Gateway = 3;
+  string Mask = 4;
+}
+message waVingOceanConfigure {
+  bytes V2RayConfigure = 1;
+  waVingOceanConfigureTunCfg tun = 2;
+  repeated string DNSServers = 3;
+  bool PublicOnly = 4;
+  bool EnableDnsCache = 5;
+}
