@@ -17,7 +17,6 @@ import (
 // simpleServer shell of V2Ray.
 type simpleServer struct {
 	space app.Space
-	disp  dispatcher.Interface
 }
 
 // newSimpleServer returns a new Point server based on given configuration.
@@ -91,7 +90,6 @@ func newSimpleServer(config *core.Config) (*simpleServer, error) {
 			return nil, err
 		}
 		common.Must(space.AddApplication(d))
-		server.disp = disp
 	}
 
 	if p := policy.FromSpace(space); p == nil {
