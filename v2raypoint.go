@@ -6,12 +6,9 @@ import (
 	"v2ray.com/core"
 	"v2ray.com/core/app"
 	"v2ray.com/core/app/dispatcher"
-	"v2ray.com/core/app/dns"
-	"v2ray.com/core/app/log"
 	"v2ray.com/core/app/policy"
 	"v2ray.com/core/app/proxyman"
 	"v2ray.com/core/common"
-	"v2ray.com/core/common/net"
 )
 
 // simpleServer shell of V2Ray.
@@ -47,18 +44,6 @@ func newSimpleServer(config *core.Config) (*simpleServer, error) {
 		}
 	}
 
-	if log.FromSpace(space) == nil {
-		l, err := app.CreateAppFromConfig(ctx, &log.Config{
-			ErrorLogType:  log.LogType_Console,
-			ErrorLogLevel: log.LogLevel_Warning,
-			AccessLogType: log.LogType_None,
-		})
-		if err != nil {
-			return nil, err //newError("failed apply default log settings").Base(err)
-		}
-		common.Must(space.AddApplication(l))
-	}
-
 	outboundHandlerManager := proxyman.OutboundHandlerManagerFromSpace(space)
 	if outboundHandlerManager == nil {
 		o, err := app.CreateAppFromConfig(ctx, new(proxyman.OutboundConfig))
@@ -69,19 +54,6 @@ func newSimpleServer(config *core.Config) (*simpleServer, error) {
 			return nil, err //newError("failed to add default outbound handler manager").Base(err)
 		}
 		outboundHandlerManager = o.(proxyman.OutboundHandlerManager)
-	}
-
-	if dns.FromSpace(space) == nil {
-		dnsConfig := &dns.Config{
-			NameServers: []*net.Endpoint{{
-				Address: net.NewIPOrDomain(net.LocalHostDomain),
-			}},
-		}
-		d, err := app.CreateAppFromConfig(ctx, dnsConfig)
-		if err != nil {
-			return nil, err
-		}
-		common.Must(space.AddApplication(d))
 	}
 
 	if disp := dispatcher.FromSpace(space); disp == nil {
