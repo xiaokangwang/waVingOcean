@@ -287,7 +287,7 @@ func (tt *tcpConnTrack) relayPayload(pkt *tcpPacket) bool {
 }
 
 func (tt *tcpConnTrack) send(pkt *tcpPacket) {
-	log.Printf("<-- [TCP][%s][%s][seq:%d][ack:%d][payload:%d]", tt.id, tcpflagsString(pkt.tcp), pkt.tcp.Seq, pkt.tcp.Ack, len(pkt.tcp.Payload))
+	//log.Printf("<-- [TCP][%s][%s][seq:%d][ack:%d][payload:%d]", tt.id, tcpflagsString(pkt.tcp), pkt.tcp.Seq, pkt.tcp.Ack, len(pkt.tcp.Payload))
 	if pkt.tcp.ACK {
 		tt.lastAck = pkt.tcp.Ack
 	}
@@ -699,7 +699,7 @@ func (tt *tcpConnTrack) run() {
 
 		select {
 		case pkt := <-tt.input:
-			log.Printf("--> [TCP][%s][%s][%s][seq:%d][ack:%d][payload:%d]", tt.id, tcpstateString(tt.state), tcpflagsString(pkt.tcp), pkt.tcp.Seq, pkt.tcp.Ack, len(pkt.tcp.Payload))
+			//log.Printf("--> [TCP][%s][%s][%s][seq:%d][ack:%d][payload:%d]", tt.id, tcpstateString(tt.state), tcpflagsString(pkt.tcp), pkt.tcp.Seq, pkt.tcp.Ack, len(pkt.tcp.Payload))
 			var continu, release bool
 
 			tt.updateSendWindow(pkt)
