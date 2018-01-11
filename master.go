@@ -37,6 +37,6 @@ func Ignite(cfg configure.WaVingOceanConfigure) {
 	}
 	//Start Tun2Socks
 	ctx := context.Background()
-	tunc := gotun2socks.New(f, &V2Dialer{ser: ns.space}, cfg.DNSServers, cfg.PublicOnly, cfg.EnableDnsCache, ctx)
+	tunc := gotun2socks.New(f, &V2Dialer{ser: ns}, cfg.DNSServers, cfg.PublicOnly, cfg.EnableDnsCache, ctx)
 	tunc.Run()
 }
