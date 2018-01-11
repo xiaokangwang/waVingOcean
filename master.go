@@ -21,7 +21,7 @@ func Ignite(cfg configure.WaVingOceanConfigure) {
 	if err != nil {
 		panic(err)
 	}
-	ns, err := newSimpleServer(configure)
+	ns, err := core.New(configure)
 	if err != nil {
 		panic(err)
 	}
