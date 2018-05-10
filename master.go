@@ -17,7 +17,7 @@ import (
  */
 func Ignite(cfg configure.WaVingOceanConfigure) {
 	//Start V2Ray
-	configure, err := core.LoadConfig("protobuf","", bytes.NewBuffer(cfg.V2RayConfigure))
+	configure, err := core.LoadConfig("protobuf", "", bytes.NewBuffer(cfg.V2RayConfigure))
 	if err != nil {
 		panic(err)
 	}
