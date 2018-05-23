@@ -22,4 +22,6 @@ func IgniteNH(cfg configure.WaVingOceanConfigure, nh *netstackadoptor.NetstackHo
 	if err != nil {
 		panic(err)
 	}
+
+	nh.InitializeStack(cfg.GetTun().Address, &tun, 1500)
 }

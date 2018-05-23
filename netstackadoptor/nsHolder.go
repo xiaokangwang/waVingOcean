@@ -107,7 +107,7 @@ func (nh *NetstackHolder) setupUDPHandler() error {
 	defer wq.EventUnregister(&waitEntry)
 	for {
 		var localAddr tcpip.FullAddress
-		v, err := ep.Read(&localAddr)
+		v, _, err := ep.Read(&localAddr)
 		if err != nil {
 			if err == tcpip.ErrWouldBlock {
 				select {
@@ -148,7 +148,7 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	} else {
 		//log.Fatalf("Unknown IP type: %v", app.Cfg.General.Network)
 	}
-	nh.nstack = netstack.New([]string{ipv4.ProtocolName, ipv6.ProtocolName}, []string{tcp.ProtocolName, udp.ProtocolName})
+	nh.nstack = netstack.New(&tcpip.StdClock{}, []string{ipv4.ProtocolName, ipv6.ProtocolName}, []string{tcp.ProtocolName, udp.ProtocolName})
 
 	// Parse the mac address.
 	maddr, err := net.ParseMAC("aa:00:01:01:01:01")

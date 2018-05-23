@@ -29,7 +29,7 @@ func (nt *NSTunnel) Rx() {
 	nt.wq.EventRegister(&waitEntry, waiter.EventIn)
 	defer nt.wq.EventUnregister(&waitEntry)
 	for {
-		data, err := nt.endpoint.Read(nil)
+		data, _, err := nt.endpoint.Read(nil)
 		if err != nil {
 			if err == tcpip.ErrWouldBlock {
 				select {
