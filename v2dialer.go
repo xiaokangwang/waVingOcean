@@ -19,9 +19,11 @@ func (vd *V2Dialer) Dial(network, address string, port uint16, ctx context.Conte
 	var err error
 	switch network {
 	case "tcp4":
+	case "tcp":
 		dest, err = net.ResolveTCPAddr(network, address+":"+strconv.Itoa(int(port)))
 		log.Println(err)
 	case "udp4":
+	case "udp":
 		dest, err = net.ResolveUDPAddr(network, address+":"+strconv.Itoa(int(port)))
 		log.Println(err)
 	}
