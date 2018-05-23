@@ -22,6 +22,10 @@ func IgniteNH(cfg configure.WaVingOceanConfigure, nh *netstackadoptor.NetstackHo
 	if err != nil {
 		panic(err)
 	}
-
-	nh.InitializeStack(cfg.GetTun().Address, &tun, 1500)
+	wi, err := netstackadoptor.OpenDefaultWaterInterface()
+	if err != nil {
+		panic(err)
+	}
+	nh.SetDialer(&V2Dialer{ser: ns})
+	nh.InitializeStack(cfg.GetTun().Address, wi, 1500)
 }
