@@ -183,3 +183,11 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	UDPInjector(ifce, nh.inchan)
 	nh.sgu = NewShuffler(nh.dialer, nh.inchan)
 }
+
+func (nh *NetstackHolder) InitializeStack(tunip string, ifce *water.Interface, mtu uint32) {
+	nh.initializeStack(tunip, ifce, mtu)
+}
+
+func (nh *NetstackHolder) SetDialer(dialer definition.SurrogateDialer) {
+	nh.dialer = dialer
+}
