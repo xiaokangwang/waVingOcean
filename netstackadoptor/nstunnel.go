@@ -1,4 +1,4 @@
-package wavingocean
+package netstackadoptor
 
 import (
 	"github.com/FlowerWrong/netstack/tcpip"
