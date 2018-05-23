@@ -2,7 +2,9 @@ package wavingocean
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"log"
 	"net"
 	"strings"
 
@@ -36,7 +38,7 @@ const (
 )
 const netstackHookport = 45001
 
-func (nh *NetstackHolder) Ignite(cfg configure.WaVingOceanConfigure) {
+func IgniteNH(cfg configure.WaVingOceanConfigure, nh *NetstackHolder) {
 	configure, err := core.LoadConfig("protobuf", "", bytes.NewBuffer(cfg.V2RayConfigure))
 	if err != nil {
 		panic(err)
@@ -52,6 +54,9 @@ func (nh *NetstackHolder) Ignite(cfg configure.WaVingOceanConfigure) {
 }
 
 func (nh *NetstackHolder) setupTCPHandler() error {
+	//Adopted from
+	//https://github.com/FlowerWrong/tun2socks/blob/master/tun2socks/tcp.go
+	//Thank you
 	var wq waiter.Queue
 	ep, err := nh.nstack.NewEndpoint(tcp.ProtocolNumber, 4, &wq)
 	if err != nil {
@@ -71,6 +76,35 @@ func (nh *NetstackHolder) setupTCPHandler() error {
 	wq.EventRegister(&waitEntry, waiter.EventIn)
 	defer wq.EventUnregister(&waitEntry)
 
+	for {
+
+		endpoint, wq, err := ep.Accept()
+		if err != nil {
+			if err == tcpip.ErrWouldBlock {
+				select {
+				//case <-QuitTCPNetstack:
+				//	log.Println("quit tcp netstack")
+				//	return nil
+				case <-notifyCh:
+					continue
+				}
+			}
+			log.Println("[error] accept failed", err)
+		}
+		go nh.HandleTCPEndPoint(endpoint, wq)
+	}
+}
+
+func (nh *NetstackHolder) HandleTCPEndPoint(endpoint tcpip.Endpoint, wq *waiter.Queue) {
+	local, _ := endpoint.GetLocalAddress()
+	// TODO WARNING DANGEROUS ATTEMOT
+	addrs := local.Addr.String()
+	res, err := nh.dialer.Dial("tcp", addrs, local.Port, context.TODO())
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	NewNSTunnel(endpoint, wq, res).Start()
 }
 
 func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, mtu uint32) {
