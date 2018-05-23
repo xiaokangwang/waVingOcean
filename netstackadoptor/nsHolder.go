@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	netstack "github.com/FlowerWrong/netstack/tcpip/stack"
@@ -190,4 +191,12 @@ func (nh *NetstackHolder) InitializeStack(tunip string, ifce *water.Interface, m
 
 func (nh *NetstackHolder) SetDialer(dialer definition.SurrogateDialer) {
 	nh.dialer = dialer
+}
+
+func DropWaterInterface(file os.File) *water.Interface {
+	return water.DropTunInterface(file)
+}
+
+func OpenDefaultWaterInterface() (*water.Interface, error) {
+	return water.New(water.Config{DeviceType: water.TUN})
 }
