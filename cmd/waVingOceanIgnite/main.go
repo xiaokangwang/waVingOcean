@@ -19,5 +19,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	wavingocean.Ignite(*conffile)
+	if len(os.Args) == 1 {
+		if os.Args[0] == "waVingOceanIgnite" {
+			wavingocean.Ignite(*conffile)
+		} else {
+			wavingocean.IgniteNH(*conffile)
+		}
+	} else {
+		wavingocean.Ignite(*conffile)
+	}
+
 }
