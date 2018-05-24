@@ -9,7 +9,7 @@ import (
 	"github.com/xiaokangwang/waVingOcean/netstackadoptor"
 )
 
-func IgniteNH(cfg configure.WaVingOceanConfigure, nh *netstackadoptor.NetstackHolder) {
+func IgniteNH(cfg configure.WaVingOceanConfigure) {
 	configure, err := core.LoadConfig("protobuf", "", bytes.NewBuffer(cfg.V2RayConfigure))
 	if err != nil {
 		panic(err)
@@ -22,6 +22,8 @@ func IgniteNH(cfg configure.WaVingOceanConfigure, nh *netstackadoptor.NetstackHo
 	if err != nil {
 		panic(err)
 	}
+	var nh *netstackadoptor.NetstackHolder
+	nh = &netstackadoptor.NetstackHolder{}
 	wi, err := netstackadoptor.OpenDefaultWaterInterface()
 	if err != nil {
 		panic(err)
