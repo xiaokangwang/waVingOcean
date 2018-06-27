@@ -31,7 +31,8 @@ func (s *Shuffler) Progress(data []byte, destaddr string, destport uint16, srcad
 	//Check if local port have corresponding socket
 	//TODO also check if local addr
 	obj, ok := s.conn.Load(srcport)
-	var ct = obj.(net.Conn)
+	//log.Print(destaddr, destport, srcaddr, srcport)
+	var ct net.Conn
 	if !ok {
 		//Dial one since there is none
 		conn, err := s.dialer.Dial("udp", destaddr, destport, context.TODO())
@@ -39,7 +40,10 @@ func (s *Shuffler) Progress(data []byte, destaddr string, destport uint16, srcad
 			return
 		}
 		ct = conn
+		s.conn.Store(srcport, conn)
 		go s.ConnTrackerRx(conn, s.inchan, destaddr, destport, srcaddr, srcport)
+	} else {
+		ct = obj.(net.Conn)
 	}
 	s.ConnTrackerTx(ct, data)
 
