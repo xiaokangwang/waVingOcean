@@ -2,6 +2,9 @@ package wavingocean
 
 import (
 	"bytes"
+	"log"
+	"runtime"
+	"time"
 
 	"github.com/xiaokangwang/waVingOcean/configure"
 	"v2ray.com/core"
@@ -29,6 +32,13 @@ func IgniteNH(cfg configure.WaVingOceanConfigure) {
 	if err != nil {
 		panic(err)
 	}
+
 	nh.SetDialer(&V2Dialer{ser: ns})
-	nh.InitializeStack(cfg.GetTun().Address, wi, 1500)
+	log.Print("Dialer Set")
+	nh.InitializeStack(cfg.GetTun().GetGateway(), wi, 1500)
+	log.Print("Stack init")
+	for {
+		runtime.Gosched()
+		time.Sleep(time.Minute)
+	}
 }

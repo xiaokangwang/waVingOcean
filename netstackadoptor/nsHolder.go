@@ -136,7 +136,8 @@ func (nh *NetstackHolder) setupUDPHandler() error {
 }
 
 func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, mtu uint32) {
-	tunIP, _, _ := net.ParseCIDR(tunip)
+	tunIP := net.ParseIP(tunip)
+	log.Print(tunIP)
 
 	var addr tcpip.Address
 	var proto tcpip.NetworkProtocolNumber
@@ -154,7 +155,7 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	// Parse the mac address.
 	maddr, err := net.ParseMAC("aa:00:01:01:01:01")
 	if err != nil {
-		//log.Fatalf("Bad MAC address: aa:00:01:01:01:01")
+		log.Fatalf("Bad MAC address: aa:00:01:01:01:01")
 	}
 
 	linkID := fdbased.New(ifce, &fdbased.Options{
@@ -165,10 +166,10 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	})
 
 	if err := nh.nstack.CreateNIC(NICId, linkID, true, addr, netstackHookport); err != nil {
-		//log.Fatal("Create NIC failed", err)
+		log.Fatal("Create NIC failed", err)
 	}
 	if err := nh.nstack.AddAddress(NICId, proto, addr); err != nil {
-		//log.Fatal("Add address to stack failed", err)
+		log.Fatal("Add address to stack failed", err)
 	}
 
 	// Add default route.
@@ -181,8 +182,10 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 		},
 	})
 	nh.inchan = make(chan UDPPack, 128)
-	UDPInjector(ifce, nh.inchan)
+	go UDPInjector(ifce, nh.inchan)
 	nh.sgu = NewShuffler(nh.dialer, nh.inchan)
+	go nh.setupUDPHandler()
+	go nh.setupTCPHandler()
 }
 
 func (nh *NetstackHolder) InitializeStack(tunip string, ifce *water.Interface, mtu uint32) {
