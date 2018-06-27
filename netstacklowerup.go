@@ -7,6 +7,7 @@ import (
 	"v2ray.com/core"
 	//"github.com/xiaokangwang/waVingOcean/definition"
 	"github.com/xiaokangwang/waVingOcean/netstackadoptor"
+	_ "v2ray.com/core/main/distro/all"
 )
 
 func IgniteNH(cfg configure.WaVingOceanConfigure) {
