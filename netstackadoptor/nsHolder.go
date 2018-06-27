@@ -33,7 +33,7 @@ const (
 	// NICId is global nicid for stack
 	NICId = 1
 	// Backlog is tcp listen backlog
-	Backlog = 1024
+	Backlog = 16
 )
 const netstackHookport = 45001
 
@@ -42,18 +42,21 @@ func (nh *NetstackHolder) setupTCPHandler() error {
 	//https://github.com/FlowerWrong/tun2socks/blob/master/tun2socks/tcp.go
 	//Thank you
 	var wq waiter.Queue
-	ep, err := nh.nstack.NewEndpoint(tcp.ProtocolNumber, 4, &wq)
+	ep, err := nh.nstack.NewEndpoint(tcp.ProtocolNumber, ipv4.ProtocolNumber, &wq)
 	if err != nil {
 		return errors.New(err.String())
 	}
+	log.Print("TCP ep")
 
 	defer ep.Close()
 	if err := ep.Bind(tcpip.FullAddress{NICId, "", netstackHookport}, nil); err != nil {
 		return errors.New(err.String())
 	}
+	log.Print("TCP bind")
 	if err := ep.Listen(Backlog); err != nil {
 		return errors.New(err.String())
 	}
+	log.Print("TCP listen")
 
 	// Wait for connections to appear.
 	waitEntry, notifyCh := waiter.NewChannelEntry(nil)
@@ -93,7 +96,7 @@ func (nh *NetstackHolder) HandleTCPEndPoint(endpoint tcpip.Endpoint, wq *waiter.
 
 func (nh *NetstackHolder) setupUDPHandler() error {
 	var wq waiter.Queue
-	ep, e := nh.nstack.NewEndpoint(udp.ProtocolNumber, 4, &wq)
+	ep, e := nh.nstack.NewEndpoint(udp.ProtocolNumber, ipv4.ProtocolNumber, &wq)
 	if e != nil {
 		return errors.New(e.String())
 	}
@@ -184,8 +187,9 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	nh.inchan = make(chan UDPPack, 128)
 	go UDPInjector(ifce, nh.inchan)
 	nh.sgu = NewShuffler(nh.dialer, nh.inchan)
-	go log.Fatal(nh.setupUDPHandler())
-	go log.Fatal(nh.setupTCPHandler())
+	go func() { log.Fatal(nh.setupUDPHandler()) }()
+	go func() { log.Fatal(nh.setupTCPHandler()) }()
+
 }
 
 func (nh *NetstackHolder) InitializeStack(tunip string, ifce *water.Interface, mtu uint32) {
