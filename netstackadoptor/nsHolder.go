@@ -184,8 +184,8 @@ func (nh *NetstackHolder) initializeStack(tunip string, ifce *water.Interface, m
 	nh.inchan = make(chan UDPPack, 128)
 	go UDPInjector(ifce, nh.inchan)
 	nh.sgu = NewShuffler(nh.dialer, nh.inchan)
-	go nh.setupUDPHandler()
-	go nh.setupTCPHandler()
+	go log.Fatal(nh.setupUDPHandler())
+	go log.Fatal(nh.setupTCPHandler())
 }
 
 func (nh *NetstackHolder) InitializeStack(tunip string, ifce *water.Interface, mtu uint32) {
