@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/FlowerWrong/water"
-	"golang.org/x/sys/unix"
+	//"golang.org/x/sys/unix"
 )
 
 //https://gist.github.com/chrisnc/0ff3d1c20cb6687454b0
@@ -97,12 +97,13 @@ func ForgeIPv4(data []byte,
 	srcaddr string,
 	srcport uint16) []byte {
 	ip := iphdr{
-		vhl:   0x45,
-		tos:   0,
-		id:    0xffff, // the kernel overwrites id if it is zero
-		off:   0,
-		ttl:   64,
-		proto: unix.IPPROTO_UDP,
+		vhl: 0x45,
+		tos: 0,
+		id:  0xffff, // the kernel overwrites id if it is zero
+		off: 0,
+		ttl: 64,
+		//proto: unix.IPPROTO_UDP,
+		proto: 17,
 	}
 	ipsrc := net.ParseIP(srcaddr)
 	ipdst := net.ParseIP(destaddr)
